@@ -14,6 +14,7 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include <ESP8266HTTPUpdateServer.h>
 #include <SPI.h>
 #include <U8g2lib.h>
 #include <ArduinoJson.h>
@@ -66,6 +67,7 @@ const char *password = STAPSK;
 const char *host = "weatherstation";
 
 ESP8266WebServer server(80);
+ESP8266HTTPUpdateServer httpUpdater;
 
 static const char TEXT_PLAIN[] PROGMEM = "text/plain";
 static const char FS_INIT_ERROR[] PROGMEM = "FS INIT ERROR";
@@ -237,7 +239,7 @@ void setup(void)
   // Default handler for all URIs not defined above
   // Use it to read files from filesystem
   server.onNotFound(handleNotFound);
-
+  httpUpdater.setup(&server);
   // Start server
   server.begin();
   DBG_OUTPUT_PORT.println("HTTP server started");
@@ -273,7 +275,8 @@ void load_settings()
     DBG_OUTPUT_PORT.println("Read setting file:");
     File file = fileSystem->open(setting_file, "r");
     String setting = "";
-    while (file.available()) {
+    while (file.available())
+    {
       setting += (char)file.read();
     }
     file.close();
@@ -281,16 +284,17 @@ void load_settings()
     DBG_OUTPUT_PORT.println(setting);
     StaticJsonDocument<200> doc;
     DeserializationError error = deserializeJson(doc, setting);
-    if (error) {
+    if (error)
+    {
       DBG_OUTPUT_PORT.print(F("deserializeJson() failed: "));
       DBG_OUTPUT_PORT.println(error.f_str());
       return;
     }
-    const char* key = doc["api_key"];
+    const char *key = doc["api_key"];
     api_key = String(key);
-    const char* city = doc["city_code"];
+    const char *city = doc["city_code"];
     city_code = String(city);
-    const char* bili = doc["bili_id"];
+    const char *bili = doc["bili_id"];
     bilibili_uid = String(bili);
   }
 }
@@ -376,66 +380,66 @@ void handleSetting()
 
 void showDisplay0()
 {
-  u8g2.clearBuffer();					// clear the internal memory
-  u8g2.setFont(u8g2_font_ncenB08_tr);	// choose a suitable font
-  u8g2.drawStr(0,10,"Screen 0!");	// write something to the internal memory
-  u8g2.sendBuffer();					// transfer internal memory to the display
-  
-  // Create a sceenshot. The picture (XBM or PBM format) is sent to the serial output. 
+  u8g2.clearBuffer();                         // clear the internal memory
+  u8g2.setFont(u8g2_font_freedoomr10_mu); // choose a suitable font
+  u8g2.drawStr(20, 50, "15:28:02");           // write something to the internal memory
+  u8g2.sendBuffer();                          // transfer internal memory to the display
+
+  // Create a sceenshot. The picture (XBM or PBM format) is sent to the serial output.
   // Copy and paste the output from the Arduino serial monitor into a file.
   // Depending on the display controller use u8g2.writeBufferXBM() or u8g2.writeBufferXBM2()
   // For SH1122, LD7032, ST7920, ST7986, LC7981, T6963, SED1330, RA8835, MAX7219, LS0?
   // use u8g2.writeBufferXBM2(), for all others use u8g2.writeBufferXBM()
-  u8g2.writeBufferXBM(DBG_OUTPUT_PORT);			// Write XBM image to serial out
-  delay(500);  
+  u8g2.writeBufferXBM(DBG_OUTPUT_PORT); // Write XBM image to serial out
+  delay(500);
 }
 
 void showDisplay1()
 {
-  u8g2.clearBuffer();					// clear the internal memory
-  u8g2.setFont(u8g2_font_ncenB08_tr);	// choose a suitable font
-  u8g2.drawStr(0,10,"Screen 1!");	// write something to the internal memory
-  u8g2.sendBuffer();					// transfer internal memory to the display
-  
-  // Create a sceenshot. The picture (XBM or PBM format) is sent to the serial output. 
+  u8g2.clearBuffer();                         // clear the internal memory
+  u8g2.setFont(u8g2_font_freedoomr10_mu); // choose a suitable font
+  u8g2.drawStr(15, 50, "15:28:03");           // write something to the internal memory
+  u8g2.sendBuffer();                          // transfer internal memory to the display
+
+  // Create a sceenshot. The picture (XBM or PBM format) is sent to the serial output.
   // Copy and paste the output from the Arduino serial monitor into a file.
   // Depending on the display controller use u8g2.writeBufferXBM() or u8g2.writeBufferXBM2()
   // For SH1122, LD7032, ST7920, ST7986, LC7981, T6963, SED1330, RA8835, MAX7219, LS0?
   // use u8g2.writeBufferXBM2(), for all others use u8g2.writeBufferXBM()
-  u8g2.writeBufferXBM(DBG_OUTPUT_PORT);			// Write XBM image to serial out
-  delay(500);  
+  u8g2.writeBufferXBM(DBG_OUTPUT_PORT); // Write XBM image to serial out
+  delay(500);
 }
 
 void showDisplay2()
 {
-  u8g2.clearBuffer();					// clear the internal memory
-  u8g2.setFont(u8g2_font_ncenB08_tr);	// choose a suitable font
-  u8g2.drawStr(0,10,"Screen 2!");	// write something to the internal memory
-  u8g2.sendBuffer();					// transfer internal memory to the display
-  
-  // Create a sceenshot. The picture (XBM or PBM format) is sent to the serial output. 
+  u8g2.clearBuffer();                         // clear the internal memory
+  u8g2.setFont(u8g2_font_freedoomr25_mn); // choose a suitable font
+  u8g2.drawStr(10, 50, "15:28:04");           // write something to the internal memory
+  u8g2.sendBuffer();                          // transfer internal memory to the display
+
+  // Create a sceenshot. The picture (XBM or PBM format) is sent to the serial output.
   // Copy and paste the output from the Arduino serial monitor into a file.
   // Depending on the display controller use u8g2.writeBufferXBM() or u8g2.writeBufferXBM2()
   // For SH1122, LD7032, ST7920, ST7986, LC7981, T6963, SED1330, RA8835, MAX7219, LS0?
   // use u8g2.writeBufferXBM2(), for all others use u8g2.writeBufferXBM()
-  u8g2.writeBufferXBM(DBG_OUTPUT_PORT);			// Write XBM image to serial out
+  u8g2.writeBufferXBM(DBG_OUTPUT_PORT); // Write XBM image to serial out
   delay(500);
 }
 
 void showDisplay3()
 {
-  u8g2.clearBuffer();					// clear the internal memory
-  u8g2.setFont(u8g2_font_ncenB08_tr);	// choose a suitable font
-  u8g2.drawStr(0,10,"Screen 3!");	// write something to the internal memory
-  u8g2.sendBuffer();					// transfer internal memory to the display
-  
-  // Create a sceenshot. The picture (XBM or PBM format) is sent to the serial output. 
+  u8g2.clearBuffer();                         // clear the internal memory
+  u8g2.setFont(u8g2_font_freedoomr25_mn); // choose a suitable font
+  u8g2.drawStr(0, 50, "15:28:05");            // write something to the internal memory
+  u8g2.sendBuffer();                          // transfer internal memory to the display
+
+  // Create a sceenshot. The picture (XBM or PBM format) is sent to the serial output.
   // Copy and paste the output from the Arduino serial monitor into a file.
   // Depending on the display controller use u8g2.writeBufferXBM() or u8g2.writeBufferXBM2()
   // For SH1122, LD7032, ST7920, ST7986, LC7981, T6963, SED1330, RA8835, MAX7219, LS0?
   // use u8g2.writeBufferXBM2(), for all others use u8g2.writeBufferXBM()
-  u8g2.writeBufferXBM(DBG_OUTPUT_PORT);			// Write XBM image to serial out
-  delay(500);  
+  u8g2.writeBufferXBM(DBG_OUTPUT_PORT); // Write XBM image to serial out
+  delay(500);
 }
 
 void loop(void)
