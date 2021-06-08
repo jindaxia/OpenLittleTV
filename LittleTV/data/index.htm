@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+    <title>小电视设置</title>
+
+    <!-- Favicon icon -->
+    <link rel="shortcut icon" href="img/favicon.ico">
+
+    <!-- H5UI CSS -->
+    <link rel="stylesheet" href="css/h5ui.min.css">
+
+    <style>
+    .h5ui-page {
+        max-width: 640px;
+        margin: 0 auto;
+    }
+    </style>
+
+</head>
+
+<body ontouchstart>
+
+<div class="h5ui-page top">
+
+    <!-- start [input] -->
+    <div class="h5ui-group">
+
+        <h5 class="h5ui-group_title">
+            基本设置
+        </h5>
+
+        <div class="h5ui-form">
+            <label for="apikey" class="h5ui-form-label">API KEY</label>
+            <input type="text" id="apikey" class="h5ui-form-input" placeholder="输入和风天气的API KEY">
+        </div>
+
+        <div class="h5ui-form">
+            <label for="citycode" class="h5ui-form-label">城市代码</label>
+            <input type="text" id="citycode" class="h5ui-form-input" placeholder="输入和风天气的城市代码">
+        </div>
+
+        <div class="h5ui-form">
+            <label for="Bid" class="h5ui-form-label">BiliBili ID</label>
+            <input type="email" id="Bid" class="h5ui-form-input" placeholder="输入BiliBili的数字ID">
+        </div>
+
+        <div class="h5ui-form">
+            <label for="password" class="h5ui-form-label">显示模式</label>
+            <div class="h5ui-select">
+                <select name="safe" id="displaymode">
+                    <option value="0">B站粉丝</option>
+                    <option value="1">天气1</option>
+                    <option value="2">天气2</option>
+                    <option value="3">倒计时</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="h5ui-form">
+            <label class="h5ui-form-label" for="date">倒计时</label>
+            <div class="h5ui-select date-select">
+                <input class="h5ui-form-input" id="date" type="date" value="">
+            </div>
+        </div>
+
+    </div>
+    <p>
+        <button id="submit" class="h5ui-btn h5ui-btn_primary">保存设置</button>
+    </p>
+
+</div>
+
+<!-- start [轻提示] -->
+<div class="h5ui-toast" id="toast-save">
+    <div class="h5ui-toast_backdrop"></div>
+    <div class="h5ui-toast_dialog">
+        <div class="h5ui-toast_content">
+            <span>保存成功</span>
+        </div>
+    </div>
+</div>
+<!-- end [轻提示] -->
+
+
+<!-- jQuery -->
+<script src="js/jquery.min.js"></script>
+<!-- H5UI JS -->
+<script src="js/h5ui.min.js"></script>
+
+<script>
+    $(function() {
+        $.get( "api/settings", function( r ) {
+            console.log(r);
+            $("#apikey").val(r.api_key);
+            $("#citycode").val(r.city_code);
+            $("#Bid").val(r.bili_id);
+            $("#displaymode").val(r.displaymode);
+            $("#date").val(r.date);
+        });
+    });
+    // 发送sms Toast
+    $("#submit").click(function() {
+        data = {
+            api_key: $("#apikey").val(), 
+            city_code: $("#citycode").val(),
+            bilibili_uid: $("#Bid").val(),
+            displaymode: $("#displaymode").val()
+        }
+        $.post( "api/settings", data , function( r ) {
+            console.log(r);
+            if(r.message == "OK"){
+                $("#toast-save").show().delay(2000).fadeOut();
+            }
+        });
+    });
+
+</script>
+
+</body>
+</html>
