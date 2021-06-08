@@ -35,10 +35,8 @@ SDFSConfig fileSystemConfig = SDFSConfig();
 #error Please select a filesystem first by uncommenting one of the "#define USE_xxx" lines at the beginning of the sketch.
 #endif
 
-#define sclPin D1
-#define sdaPin D2
 
-U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ sclPin, /* data=*/ sdaPin, /* reset=*/ U8X8_PIN_NONE);   // ESP32 Thing, pure SW emulated I2C
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
 
 const int led = LED_BUILTIN;
 
