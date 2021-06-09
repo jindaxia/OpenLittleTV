@@ -12,10 +12,10 @@
     <title>仿B站小电视 OpenLittleTV</title>
 
     <!-- Favicon icon -->
-    <link rel="shortcut icon" href="img/favicon.ico" />
+    <link rel="shortcut icon" href="http://h5ui.io/img/favicon.ico" />
 
     <!-- H5UI CSS -->
-    <link rel="stylesheet" href="css/h5ui.min.css" />
+    <link rel="stylesheet" href="http://h5ui.io/css/h5ui.min.css" />
 
     <style>
       .h5ui-page {
@@ -84,21 +84,11 @@
     <!-- end [轻提示] -->
 
     <!-- jQuery -->
-    <script src="js/jquery.min.js"></script>
+    <script src="http://code.jquery.com/jquery.min.js"></script>
     <!-- H5UI JS -->
-    <script src="js/h5ui.min.js"></script>
+    <script src="http://h5ui.io/js/h5ui.min.js"></script>
 
     <script>
-      $(function () {
-        $.get('api/settings', function (r) {
-          console.log(r);
-          $('#apikey').val(r.api_key);
-          $('#citycode').val(r.city_code);
-          $('#Bid').val(r.bili_id);
-          $('#displaymode').val(r.displaymode);
-          $('#date').val(r.date);
-        });
-      });
 
       $('#firmware').change(function () {
         var fp = $('#firmware')[0];
@@ -123,19 +113,6 @@
           cache: false,
           processData: false,
           contentType: false,
-        });
-
-        data = {
-          api_key: $('#apikey').val(),
-          city_code: $('#citycode').val(),
-          bilibili_uid: $('#Bid').val(),
-          displaymode: $('#displaymode').val(),
-        };
-        $.post('update', data, function (r) {
-          console.log(r);
-          if (r.message == 'OK') {
-            $('#toast-save').show().delay(2000).fadeOut();
-          }
         });
       });
     </script>
