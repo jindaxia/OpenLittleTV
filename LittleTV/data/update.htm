@@ -22,30 +22,54 @@
         max-width: 640px;
         margin: 0 auto;
       }
-      .h5ui-bar{
+      .h5ui-bar {
         max-width: 640px;
         margin: 0 auto;
+      }
+      .file input {
+        opacity: 0;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
       }
     </style>
   </head>
 
   <body ontouchstart>
+    <header class="h5ui-bar">
+      <a class="h5ui-bar_item pull-left" href="index.htm">
+        <i class="h5ui-bar_arrow_left"></i>
+        返回
+      </a>
+      <a class="h5ui-bar_item pull-right" href=""> 检查更新 </a>
+      <h1 class="h5ui-bar_title">升级</h1>
+    </header>
     <div class="h5ui-page top">
+      <!-- start [input] -->
       <div class="h5ui-group">
-        <a class="h5ui-list" href="settings.htm">
-          <div class="h5ui-list_bd">基本设置</div>
+        <h5 class="h5ui-group_title">基本设置</h5>
+
+        <label class="h5ui-list file" for="firmware">
+          <div class="h5ui-list_bd">固件上传</div>
           <div class="h5ui-list_ft">
+            <small id="filename">选择固件</small>
             <i class="h5ui-list_ft_arrow"></i>
           </div>
-        </a>
-        <a class="h5ui-list" href="update.htm">
-          <div class="h5ui-list_bd">更新固件</div>
-          <div class="h5ui-list_ft">
-            <span class="h5ui-badge">新</span>
-            <i class="h5ui-list_ft_arrow"></i>
-          </div>
-        </a>
+          <input
+            id="firmware"
+            name="firmware"
+            type="file"
+            accept=".bin,.bin.gz"
+          />
+        </label>
       </div>
+      <div class="h5ui-form_tip">请选择BIN格式的固件上传。</div>
+
+      <p>
+        <button id="submit" class="h5ui-btn h5ui-btn_primary">上传固件</button>
+      </p>
     </div>
 
     <!-- start [轻提示] -->
@@ -75,15 +99,39 @@
           $('#date').val(r.date);
         });
       });
+
+      $('#firmware').change(function () {
+        var fp = $('#firmware')[0];
+        if (fp.files.length > 0) {
+          $('#filename').text(fp.files[0].name);
+        } else {
+          $('#filename').text('选择固件');
+        }
+        console.log(fp);
+      });
       // 发送sms Toast
       $('#submit').click(function () {
+        var files = $('#firmware').prop('files');
+
+        var data = new FormData();
+        data.append('firmware', files[0]);
+
+        $.ajax({
+          url: '/update',
+          type: 'POST',
+          data: data,
+          cache: false,
+          processData: false,
+          contentType: false,
+        });
+
         data = {
           api_key: $('#apikey').val(),
           city_code: $('#citycode').val(),
           bilibili_uid: $('#Bid').val(),
           displaymode: $('#displaymode').val(),
         };
-        $.post('api/settings', data, function (r) {
+        $.post('update', data, function (r) {
           console.log(r);
           if (r.message == 'OK') {
             $('#toast-save').show().delay(2000).fadeOut();

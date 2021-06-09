@@ -30,22 +30,72 @@
   </head>
 
   <body ontouchstart>
+    <header class="h5ui-bar">
+      <a class="h5ui-bar_item pull-left" href="index.htm">
+        <i class="h5ui-bar_arrow_left"></i>
+        返回
+      </a>
+      <a class="h5ui-bar_item pull-right" href=""> 操作 </a>
+      <h1 class="h5ui-bar_title">设置页面</h1>
+    </header>
     <div class="h5ui-page top">
+
+      <!-- start [input] -->
       <div class="h5ui-group">
-        <a class="h5ui-list" href="settings.htm">
-          <div class="h5ui-list_bd">基本设置</div>
-          <div class="h5ui-list_ft">
-            <i class="h5ui-list_ft_arrow"></i>
+        <!-- <h5 class="h5ui-group_title">基本设置</h5> -->
+
+        <div class="h5ui-form">
+          <label for="apikey" class="h5ui-form-label">API KEY</label>
+          <input
+            type="text"
+            id="apikey"
+            class="h5ui-form-input"
+            placeholder="输入和风天气的API KEY"
+          />
+        </div>
+
+        <div class="h5ui-form">
+          <label for="citycode" class="h5ui-form-label">城市代码</label>
+          <input
+            type="text"
+            id="citycode"
+            class="h5ui-form-input"
+            placeholder="输入和风天气的城市代码"
+          />
+        </div>
+
+        <div class="h5ui-form">
+          <label for="Bid" class="h5ui-form-label">BiliBili ID</label>
+          <input
+            type="email"
+            id="Bid"
+            class="h5ui-form-input"
+            placeholder="输入BiliBili的数字ID"
+          />
+        </div>
+
+        <div class="h5ui-form">
+          <label for="password" class="h5ui-form-label">显示模式</label>
+          <div class="h5ui-select">
+            <select name="safe" id="displaymode">
+              <option value="0">B站粉丝</option>
+              <option value="1">天气1</option>
+              <option value="2">天气2</option>
+              <option value="3">倒计时</option>
+            </select>
           </div>
-        </a>
-        <a class="h5ui-list" href="update.htm">
-          <div class="h5ui-list_bd">更新固件</div>
-          <div class="h5ui-list_ft">
-            <span class="h5ui-badge">新</span>
-            <i class="h5ui-list_ft_arrow"></i>
+        </div>
+
+        <div class="h5ui-form">
+          <label class="h5ui-form-label" for="date">倒计时</label>
+          <div class="h5ui-select date-select">
+            <input class="h5ui-form-input" id="date" type="date" value="" />
           </div>
-        </a>
+        </div>
       </div>
+      <p>
+        <button id="submit" class="h5ui-btn h5ui-btn_primary">保存设置</button>
+      </p>
     </div>
 
     <!-- start [轻提示] -->
