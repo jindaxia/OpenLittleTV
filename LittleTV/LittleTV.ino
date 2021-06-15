@@ -10,6 +10,7 @@
 
 ////////////////////////////////
 #include <Arduino.h>
+#include <TimeLib.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
@@ -18,6 +19,8 @@
 #include <SPI.h>
 #include <U8g2lib.h>
 #include <ArduinoJson.h>
+
+#include "TimeNTP.h"
 
 #if defined USE_SPIFFS
 #include <FS.h>
@@ -36,13 +39,14 @@ SDFSConfig fileSystemConfig = SDFSConfig();
 #error Please select a filesystem first by uncommenting one of the "#define USE_xxx" lines at the beginning of the sketch.
 #endif
 
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);
 
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
+const String setting_file = "settings.json";
 
 const int led = LED_BUILTIN;
 
 // touch sensor PIN
-#define ctsPin 10
+#define ctsPin D3
 
 #define DBG_OUTPUT_PORT Serial
 
@@ -50,8 +54,6 @@ const int led = LED_BUILTIN;
 #define STASSID "your-ssid"
 #define STAPSK "your-password"
 #endif
-
-const String setting_file = "settings.json";
 
 String api_key = "";
 String city_code = "";
@@ -228,6 +230,9 @@ void setup(void)
     DBG_OUTPUT_PORT.println(F(".local to open the page"));
   }
 
+  Udp.begin(localPort);
+  setSyncProvider(getNtpTime);
+
   load_settings();
 
   ////////////////////////////////
@@ -241,8 +246,62 @@ void setup(void)
   server.onNotFound(handleNotFound);
   httpUpdater.setup(&server);
   // Start server
-  server.begin();
-  DBG_OUTPUT_PORT.println("HTTP server started");
+}
+
+void loop(void)
+{
+  server.handleClient();
+  MDNS.update();
+
+  // 检测是否按了按钮
+  if (digitalRead(ctsPin) == LOW)
+  {
+    // button pressed
+    modeChangeRequested = true;
+  }
+
+  // 间隔时间还没到，不刷新屏幕
+  if (!timeToChange)
+  {
+    return;
+  }
+
+  // 是否切换显示模式
+  if (modeChangeRequested)
+  {
+    // increment mode (reset after 2)
+    displayMode++;
+    if (displayMode >= maxDisplayMode)
+    {
+      displayMode = 0;
+    }
+
+    modeChangeRequested = false;
+  }
+  digitalClockDisplay();
+  // act according to mode
+  switch (displayMode)
+  {
+  case 0: // Mode0
+    // DBG_OUTPUT_PORT.println("show display mode 0 started");
+    showDisplay0();
+    break;
+
+  case 1: // Mode1
+    // DBG_OUTPUT_PORT.println("show display mode 1 started");
+    showDisplay1();
+    break;
+
+  case 2: // Mode2
+    // DBG_OUTPUT_PORT.println("show display mode 2 started");
+    showDisplay2();
+    break;
+
+  case 3: // Mode3
+    // DBG_OUTPUT_PORT.println("show display mode 3 started");
+    showDisplay3();
+    break;
+  }
 }
 
 int day_diff(int year_start, int month_start, int day_start, int year_end, int month_end, int day_end)
@@ -380,120 +439,59 @@ void handleSetting()
 
 void showDisplay0()
 {
-  u8g2.clearBuffer();                         // clear the internal memory
-  u8g2.setFont(u8g2_font_freedoomr10_mu); // choose a suitable font
-  u8g2.drawStr(20, 50, "15:28:02");           // write something to the internal memory
-  u8g2.sendBuffer();                          // transfer internal memory to the display
+  // Draw Time (08:02:12)
+  u8g2_uint_t pos_x = 0;
+  u8g2_uint_t pos_y = 63;
 
-  // Create a sceenshot. The picture (XBM or PBM format) is sent to the serial output.
-  // Copy and paste the output from the Arduino serial monitor into a file.
-  // Depending on the display controller use u8g2.writeBufferXBM() or u8g2.writeBufferXBM2()
-  // For SH1122, LD7032, ST7920, ST7986, LC7981, T6963, SED1330, RA8835, MAX7219, LS0?
-  // use u8g2.writeBufferXBM2(), for all others use u8g2.writeBufferXBM()
-  u8g2.writeBufferXBM(DBG_OUTPUT_PORT); // Write XBM image to serial out
-  delay(500);
+  u8g2.clearBuffer();                     // clear the internal memory
+  u8g2.setFont(u8g2_font_freedoomr25_mn); // choose a suitable font
+
+
+  char hour_str[3];
+  strcpy(hour_str, u8x8_u8toa(hour(), 2));
+  u8g2.drawStr(pos_x, pos_y, hour_str);
+
+  u8g2_uint_t width_digits = u8g2.getStrWidth(hour_str);
+  DBG_OUTPUT_PORT.println(width_digits);
+  pos_x += u8g2.getStrWidth(hour_str);
+  u8g2.drawStr(pos_x, pos_y, ":");
+
+  pos_x += u8g2.getStrWidth(":");
+  char min_str[3];
+  strcpy(min_str, u8x8_u8toa(minute(), 2));
+  u8g2.drawStr(pos_x, pos_y, min_str);
+
+  pos_x += u8g2.getStrWidth(min_str);
+  u8g2.drawStr(pos_x, pos_y, ":");
+
+  pos_x += u8g2.getStrWidth(":");
+  char sec_str[3];
+  strcpy(sec_str, u8x8_u8toa(second(), 2));
+  u8g2.drawStr(pos_x, pos_y, sec_str);
+
+  u8g2.sendBuffer(); 
 }
 
 void showDisplay1()
 {
-  u8g2.clearBuffer();                         // clear the internal memory
-  u8g2.setFont(u8g2_font_freedoomr10_mu); // choose a suitable font
-  u8g2.drawStr(15, 50, "15:28:03");           // write something to the internal memory
-  u8g2.sendBuffer();                          // transfer internal memory to the display
-
-  // Create a sceenshot. The picture (XBM or PBM format) is sent to the serial output.
-  // Copy and paste the output from the Arduino serial monitor into a file.
-  // Depending on the display controller use u8g2.writeBufferXBM() or u8g2.writeBufferXBM2()
-  // For SH1122, LD7032, ST7920, ST7986, LC7981, T6963, SED1330, RA8835, MAX7219, LS0?
-  // use u8g2.writeBufferXBM2(), for all others use u8g2.writeBufferXBM()
-  u8g2.writeBufferXBM(DBG_OUTPUT_PORT); // Write XBM image to serial out
-  delay(500);
+  u8g2.clearBuffer();                     // clear the internal memory
+  u8g2.setFont(u8g2_font_freedoomr25_mn); // choose a suitable font
+  u8g2.drawStr(15, 50, "15:28:03");       // write something to the internal memory
+  u8g2.sendBuffer();                      // transfer internal memory to the display
 }
 
 void showDisplay2()
 {
-  u8g2.clearBuffer();                         // clear the internal memory
+  u8g2.clearBuffer();                     // clear the internal memory
   u8g2.setFont(u8g2_font_freedoomr25_mn); // choose a suitable font
-  u8g2.drawStr(10, 50, "15:28:04");           // write something to the internal memory
-  u8g2.sendBuffer();                          // transfer internal memory to the display
-
-  // Create a sceenshot. The picture (XBM or PBM format) is sent to the serial output.
-  // Copy and paste the output from the Arduino serial monitor into a file.
-  // Depending on the display controller use u8g2.writeBufferXBM() or u8g2.writeBufferXBM2()
-  // For SH1122, LD7032, ST7920, ST7986, LC7981, T6963, SED1330, RA8835, MAX7219, LS0?
-  // use u8g2.writeBufferXBM2(), for all others use u8g2.writeBufferXBM()
-  u8g2.writeBufferXBM(DBG_OUTPUT_PORT); // Write XBM image to serial out
-  delay(500);
+  u8g2.drawStr(10, 50, "15:28:04");       // write something to the internal memory
+  u8g2.sendBuffer();                      // transfer internal memory to the display
 }
 
 void showDisplay3()
 {
-  u8g2.clearBuffer();                         // clear the internal memory
+  u8g2.clearBuffer();                     // clear the internal memory
   u8g2.setFont(u8g2_font_freedoomr25_mn); // choose a suitable font
-  u8g2.drawStr(0, 50, "15:28:05");            // write something to the internal memory
-  u8g2.sendBuffer();                          // transfer internal memory to the display
-
-  // Create a sceenshot. The picture (XBM or PBM format) is sent to the serial output.
-  // Copy and paste the output from the Arduino serial monitor into a file.
-  // Depending on the display controller use u8g2.writeBufferXBM() or u8g2.writeBufferXBM2()
-  // For SH1122, LD7032, ST7920, ST7986, LC7981, T6963, SED1330, RA8835, MAX7219, LS0?
-  // use u8g2.writeBufferXBM2(), for all others use u8g2.writeBufferXBM()
-  u8g2.writeBufferXBM(DBG_OUTPUT_PORT); // Write XBM image to serial out
-  delay(500);
-}
-
-void loop(void)
-{
-  server.handleClient();
-  MDNS.update();
-
-  // 检测是否按了按钮
-  if (digitalRead(ctsPin) == HIGH)
-  {
-    // button pressed
-    modeChangeRequested = true;
-  }
-
-  // 间隔时间还没到，不刷新屏幕
-  if (!timeToChange)
-  {
-    return;
-  }
-
-  // 是否切换显示模式
-  if (modeChangeRequested)
-  {
-    // increment mode (reset after 2)
-    displayMode++;
-    if (displayMode >= maxDisplayMode)
-    {
-      displayMode = 0;
-    }
-
-    modeChangeRequested = false;
-  }
-
-  // act according to mode
-  switch (displayMode)
-  {
-  case 0: // Mode0
-    DBG_OUTPUT_PORT.println("show display mode 0 started");
-    showDisplay0();
-    break;
-
-  case 1: // Mode1
-    DBG_OUTPUT_PORT.println("show display mode 1 started");
-    showDisplay1();
-    break;
-
-  case 2: // Mode2
-    DBG_OUTPUT_PORT.println("show display mode 2 started");
-    showDisplay2();
-    break;
-
-  case 3: // Mode3
-    DBG_OUTPUT_PORT.println("show display mode 3 started");
-    showDisplay3();
-    break;
-  }
+  u8g2.drawStr(0, 50, "15:28:05");        // write something to the internal memory
+  u8g2.sendBuffer();                      // transfer internal memory to the display
 }
